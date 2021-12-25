@@ -8,8 +8,15 @@ from tensorflow.keras import layers
 
 from recommenders.models.newsrec.models.base_model import BaseModel
 from recommenders.models.newsrec.models.layers import AttLayer2
+from recommenders.models.newsrec.models.layers import (
+    AttLayer2,
+    ComputeMasking,
+    OverwriteMasking,
+)
 
 __all__ = ["NAMLModel"]
+
+
 
 
 class NAMLModel(BaseModel):
@@ -116,18 +123,31 @@ class NAMLModel(BaseModel):
         click_news_presents = layers.TimeDistributed(newsencoder)(
             his_input_title_body_verts
         )
-        user_present = AttLayer2(hparams.attention_hidden_dim, seed=self.seed)(
-            click_news_presents
-        )
+ 
+        # user_present = AttLayer2(hparams.attention_hidden_dim, seed=self.seed)(
+        #     click_news_presents
+        # )
 
-        # them 
-        # user_present = layers.LSTM(128)(his_input_title_body_verts)
-
-
-
-
-
+        # cai nay chay duoc roi ma khong hop li lam 
+        # user_present = layers.LSTM(400)(
+        #     layers.Masking(mask_value=0.0)(
+        #             click_news_presents
+        #         )
+        # )
         # end 
+
+        # thay vì cho qua một cái timeDistribute (tương  đương apply 1 cái dense cho đầu ra bọn kia)
+        # thì cho qua LSTM 
+        # 400 = đầu ra user encode này 
+
+        # user_present = layers.LSTM(400)(newsencoder(
+        #     his_input_title_body_verts
+        # ))
+        # -> lỗi 
+
+        # vẫn phải cho qua TimeDistribute 
+        user_present = layers.LSTM(400)(click_news_presents)
+
 
         model = keras.Model(
             his_input_title_body_verts, user_present, name="user_encoder"
@@ -197,8 +217,15 @@ class NAMLModel(BaseModel):
         model = keras.Model(input_title_body_verts, news_repr, name="news_encoder")
         return model
 
-    def _build_titleencoder(self, embedding_layer): 
-        
+    def _build_titleencoder(self, embedding_layer):
+        """build title encoder of NAML news encoder.
+
+        Args:
+            embedding_layer (object): a word embedding layer.
+
+        Return:
+            object: the title encoder of NAML.
+        """
         hparams = self.hparams
         sequences_input_title = keras.Input(shape=(hparams.title_size,), dtype="int32")
         embedded_sequences_title = embedding_layer(sequences_input_title)
