@@ -4,6 +4,7 @@
 import numpy as np
 import tensorflow.keras as keras
 from tensorflow.keras import layers
+from keras.models import Sequential
 
 
 from recommenders.models.newsrec.models.base_model import BaseModel
@@ -157,11 +158,13 @@ class NAMLModel(BaseModel):
         # -> lỗi 
 
         # vẫn phải cho qua TimeDistribute 
-        # user_present = layers.LSTM(400)(click_news_presents)
-        # 
 
-        print("click_news_presents shape = ",click_news_presents)
-        user_present = click_news_presents[:,-1,:]
+        lstm_1 = layers.LSTM(units=128, return_sequences=True, input_shape=(None, 50, 82))(click_news_presents)
+        user_present = layers.LSTM(400)(lstm_1)
+
+        
+        # print("click_news_presents shape = ",click_news_presents)
+        # user_present = click_news_presents[:,-1,:]
 
         # user_present = AttLayer2(hparams.attention_hidden_dim, seed=self.seed)(
         #     click_news_presents
@@ -232,13 +235,13 @@ class NAMLModel(BaseModel):
         )
         # print("shape = ",concate_repr.shape)  # (?,4,400)
 
-        # news_repr = AttLayer2(hparams.attention_hidden_dim, seed=self.seed)(
-        #     concate_repr
-        # )
+        news_repr = AttLayer2(hparams.attention_hidden_dim, seed=self.seed)(
+            concate_repr
+        )
 
         # print("dau ra new encoder = ",news_repr.shape)  # (?,400)
 
-        news_repr = layers.LSTM(400, input_shape = (4,400))(concate_repr)
+        # news_repr = layers.LSTM(400)(news_repr)
 
         model = keras.Model(input_title_body_verts, news_repr, name="news_encoder")
         # model = keras.Model(input_title_body_verts, concate_repr, name="news_encoder")
