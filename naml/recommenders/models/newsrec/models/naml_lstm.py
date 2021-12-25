@@ -120,9 +120,18 @@ class NAMLModel(BaseModel):
             dtype="int32",
         )
 
+        print("shape vao", his_input_title_body_verts.shape)  # (?,50,82)
+
+        # click_news_presents = layers.TimeDistributed(newsencoder)(
+        #     his_input_title_body_verts
+        # )
+
+
         click_news_presents = layers.TimeDistributed(newsencoder)(
             his_input_title_body_verts
         )
+
+        # print("dau ra time distribute ", click_news_presents.shape)  # (?,50,400)
  
         # user_present = AttLayer2(hparams.attention_hidden_dim, seed=self.seed)(
         #     click_news_presents
@@ -140,14 +149,23 @@ class NAMLModel(BaseModel):
         # thì cho qua LSTM 
         # 400 = đầu ra user encode này 
 
-        # user_present = layers.LSTM(400)(newsencoder(
-        #     his_input_title_body_verts
-        # ))
+        print(newsencoder.summary())
+
+        # new_encode = newsencoder(his_input_title_body_verts)
+        # print("input LSTM shape = ")
+        # user_present = layers.LSTM(400)(new_encode)
         # -> lỗi 
 
         # vẫn phải cho qua TimeDistribute 
-        user_present = layers.LSTM(400)(click_news_presents)
+        # user_present = layers.LSTM(400)(click_news_presents)
         # 
+
+        print("click_news_presents shape = ",click_news_presents)
+        user_present = click_news_presents[:,-1,:]
+
+        # user_present = AttLayer2(hparams.attention_hidden_dim, seed=self.seed)(
+        #     click_news_presents
+        # )
 
         model = keras.Model(
             his_input_title_body_verts, user_present, name="user_encoder"
@@ -173,6 +191,8 @@ class NAMLModel(BaseModel):
             shape=(hparams.title_size + hparams.body_size + 2,), dtype="int32"
             # cái shape này sẽ k tính batch, ngầm hiểu nó đã là bacth*82*...
         )
+
+        print("dau vao new encoder =",input_title_body_verts)
 
         # cho cả đống vào giờ lại tách ra : 82 -> lây 30 cái đầu 
         sequences_input_title = layers.Lambda(lambda x: x[:, : hparams.title_size])(
@@ -210,11 +230,18 @@ class NAMLModel(BaseModel):
         concate_repr = layers.Concatenate(axis=-2)(
             [title_repr, body_repr, vert_repr, subvert_repr]
         )
-        news_repr = AttLayer2(hparams.attention_hidden_dim, seed=self.seed)(
-            concate_repr
-        )
+        # print("shape = ",concate_repr.shape)  # (?,4,400)
+
+        # news_repr = AttLayer2(hparams.attention_hidden_dim, seed=self.seed)(
+        #     concate_repr
+        # )
+
+        # print("dau ra new encoder = ",news_repr.shape)  # (?,400)
+
+        news_repr = layers.LSTM(400, input_shape = (4,400))(concate_repr)
 
         model = keras.Model(input_title_body_verts, news_repr, name="news_encoder")
+        # model = keras.Model(input_title_body_verts, concate_repr, name="news_encoder")
         return model
 
     def _build_titleencoder(self, embedding_layer):
@@ -426,7 +453,7 @@ class NAMLModel(BaseModel):
         news_present_one = self.newsencoder(pred_title_body_verts_one)
 
         # gộp user và news vô thhif ra nhãn 
-        print(news_present.shape, user_present.shape)
+        print("news_present shape =", news_present.shape," user_present shape =", user_present.shape)
         preds = layers.Dot(axes=-1)([news_present, user_present])
         preds = layers.Activation(activation="softmax")(preds)
 
