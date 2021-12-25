@@ -147,7 +147,7 @@ class NAMLModel(BaseModel):
 
         # vẫn phải cho qua TimeDistribute 
         user_present = layers.LSTM(400)(click_news_presents)
-
+        # 
 
         model = keras.Model(
             his_input_title_body_verts, user_present, name="user_encoder"
