@@ -131,3 +131,5 @@ dmypy.json
 
 # custom 
 data/small/*
+data-nrms/
+mind_dataset/

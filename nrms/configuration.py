@@ -6,7 +6,7 @@ from reco_utils.recommender.newsrec.io.mind_iterator import MINDIterator
 from reco_utils.recommender.newsrec.newsrec_utils import prepare_hparams
 from reco_utils.recommender.newsrec.newsrec_utils import get_mind_data_set
 
-epochs = 8
+epochs = 1
 seed = 42
 
 
@@ -72,7 +72,7 @@ def get_params(yaml_name, device_id=0, model_class=None):
 
 def load_trainer(yaml_name=None, log_file=None, device_id=0, model_class=None, mind_type="small"):
     log_path = os.path.join(get_data_path(mind_type), "log")
-    download_data(mind_type)
+    # download_data(mind_type)
     os.makedirs(log_path, exist_ok=True)
     hparams = get_params(yaml_name, device_id, model_class)
     # set up log file
