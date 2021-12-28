@@ -5,6 +5,7 @@ import numpy as np
 import tensorflow.keras as keras
 from tensorflow.keras import layers
 
+# y hết như cái naml khác mỗi iterator thôi ae 
 
 
 from recommenders.models.newsrec.models.base_model import BaseModel
@@ -123,7 +124,6 @@ class NAMLModel(BaseModel):
 
         # them 
         # user_present = layers.LSTM(128)(his_input_title_body_verts)
-
         # end 
 
         model = keras.Model(
@@ -178,9 +178,8 @@ class NAMLModel(BaseModel):
         )(input_title_body_verts)
 
 
-        # (?,30,) -> (?,400)
+
         title_repr = self._build_titleencoder(embedding_layer)(sequences_input_title)
-        # (?,50,) -> (?,400)
         body_repr = self._build_bodyencoder(embedding_layer)(sequences_input_body)
         vert_repr = self._build_vertencoder()(input_vert)
         subvert_repr = self._build_subvertencoder()(input_subvert)
@@ -198,46 +197,23 @@ class NAMLModel(BaseModel):
     def _build_titleencoder(self, embedding_layer): 
         
         hparams = self.hparams
+        sequences_input_title = keras.Input(shape=(hparams.title_size,), dtype="int32")
+        embedded_sequences_title = embedding_layer(sequences_input_title)
 
-        # (30,)
-        # sequences_input_title = keras.Input(shape=(hparams.title_size,), dtype="int32")
-        sequences_input_title = keras.Input(shape=(hparams.title_size,),dtype="float32")
+        y = layers.Dropout(hparams.dropout)(embedded_sequences_title)
+        y = layers.Conv1D(
+            hparams.filter_num,
+            hparams.window_size,
+            activation=hparams.cnn_activation,
+            padding="same",
+            bias_initializer=keras.initializers.Zeros(),
+            kernel_initializer=keras.initializers.glorot_uniform(seed=self.seed),
+        )(y)
+        y = layers.Dropout(hparams.dropout)(y)
+        pred_title = AttLayer2(hparams.attention_hidden_dim, seed=self.seed)(y)
+        pred_title = layers.Reshape((1, hparams.filter_num))(pred_title)
 
-        # resaphe = layers.Reshape((1, 400),dtype="int32")(sequences_input_title)
-
-
-        # khoogn được cho cái này để tăng shape (thoe Chien dinh cow noi vay )    
-        # resaphe = layers.Embedding(input_dim=hparams.title_size, output_dim=400, name='word_emb',trainable=True)(sequences_input_title)
-
-        print("build dense")
-        resaphe_400 = layers.Dense(400, activation='relu')(sequences_input_title)
-
-        resaphe_1_400 = layers.Reshape((1, 400),dtype="int32")(resaphe_400)
-
-        print(sequences_input_title.shape)
-        print(type(sequences_input_title))
-
-        # input_title_concat = layers.Concatenate(axis=-1)(
-        #     [sequences_input_title]
-        # )
-
-        # embedded_sequences_title = embedding_layer(sequences_input_title)
-
-        # y = layers.Dropout(hparams.dropout)(embedded_sequences_title)
-        # y = layers.Conv1D(
-        #     hparams.filter_num,
-        #     hparams.window_size,
-        #     activation=hparams.cnn_activation,
-        #     padding="same",
-        #     bias_initializer=keras.initializers.Zeros(),
-        #     kernel_initializer=keras.initializers.glorot_uniform(seed=self.seed),
-        # )(y)
-        # y = layers.Dropout(hparams.dropout)(y)
-        # pred_title = AttLayer2(hparams.attention_hidden_dim, seed=self.seed)(y)
-        # pred_title = layers.Reshape((1, hparams.filter_num))(pred_title)
-
-    
-        model = keras.Model(sequences_input_title, resaphe_1_400, name="title_encoder")
+        model = keras.Model(sequences_input_title, pred_title, name="title_encoder")
         return model
 
     def _build_bodyencoder(self, embedding_layer):
@@ -331,14 +307,9 @@ class NAMLModel(BaseModel):
 
         # [his_input_title, his_input_body, his_input_vert, his_input_subvert]
         # > his_title_body_verts
-        # his_input_title = keras.Input(
-        #     shape=(hparams.his_size, hparams.title_size), dtype="int32"
-        # )
-
         his_input_title = keras.Input(
             shape=(hparams.his_size, hparams.title_size), dtype="int32"
         )
-
         his_input_body = keras.Input(
             shape=(hparams.his_size, hparams.body_size), dtype="int32"
         )
@@ -348,15 +319,9 @@ class NAMLModel(BaseModel):
 
         #  [pred_input_title, pred_input_body, pred_input_vert, pred_input_subvert]
         #  pred_title_body_verts
-        # pred_input_title = keras.Input(
-        #     shape=(hparams.npratio + 1, hparams.title_size), dtype="int32"
-        # )
-
         pred_input_title = keras.Input(
             shape=(hparams.npratio + 1, hparams.title_size), dtype="int32"
         )
-
-
         pred_input_body = keras.Input(
             shape=(hparams.npratio + 1, hparams.body_size), dtype="int32"
         )
@@ -371,24 +336,13 @@ class NAMLModel(BaseModel):
         #         pred_input_subvert_one,
         #     ]
         # > pred_title_body_verts_one
-        # pred_input_title_one = keras.Input(
-        #     shape=(
-        #         1,
-        #         hparams.title_size,
-        #     ),
-        #     dtype="int32",
-        # )
-
-
         pred_input_title_one = keras.Input(
             shape=(
                 1,
                 hparams.title_size,
             ),
-            dtype="int32"
+            dtype="int32",
         )
-
-
         pred_input_body_one = keras.Input(
             shape=(
                 1,
