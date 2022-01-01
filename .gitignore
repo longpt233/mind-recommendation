@@ -133,3 +133,11 @@ dmypy.json
 data/small/*
 data-nrms/
 mind_dataset/
+# data/*
+data/utils/embedding_all.npy
+data/utils/embedding.npy
+data/utils/vert_dict.pkl
+data/utils/subvert_dict.pkl
+data/utils/word_dict.pkl
+data/utils/word_dict_all.pkl
+data/utils/uid2index.pkl

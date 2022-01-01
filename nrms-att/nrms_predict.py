@@ -1,10 +1,18 @@
 import os
-import argparse
 import torch
 import numpy as np
 import time
 from tqdm import tqdm
-from configuration import get_path, load_trainer, get_data_path
+
+# from configuration import (
+#     hparams, seed, data_path, test_news_file, test_behaviors_file, MIND_type, valid_news_file, valid_behaviors_file
+# )
+from configuration import (
+     seed, data_path, test_news_file, test_behaviors_file, MIND_type, valid_news_file, valid_behaviors_file,load_trainer
+)
+from reco_utils.recommender.newsrec.io.mind_iterator import MINDIterator
+from reco_utils.recommender.newsrec.trainers.base_trainer import BaseTrainer
+from utils import tools
 
 
 def write_prediction(imp_indexes, imp_preds):
@@ -20,25 +28,19 @@ def write_prediction(imp_indexes, imp_preds):
             f.write(" ".join([str(impr_index), pred_rank]) + "\n")
 
 
-parse = argparse.ArgumentParser(description="Prediction process")
-parse.add_argument("--configure", "-c", help="yaml file", dest="config", metavar="FILE", default=r"nrms.yaml")
-parse.add_argument("--device_id", "-d", dest="device_id", metavar="INT", default=0)
-parse.add_argument("--mind_type", "-t", dest="mind_type", metavar="TEXT", default="small")
-parse.add_argument("--model_class", "-m", dest="model_class", metavar="TEXT", default="nrms")
-args = parse.parse_args()
-test_news_file, test_behaviors_file = get_path("test", mind_type=args.mind_type)
-valid_news_file, valid_behaviors_file = get_path("valid", mind_type=args.mind_type)
 start_time = time.time()
-inference_dir = os.path.join(get_data_path(args.mind_type), "prediction")
+inference_dir = f"{data_path}/test"
 os.makedirs(inference_dir, exist_ok=True)
 # set trainer
-trainer = load_trainer(args.config, device_id=int(args.device_id), model_class=args.model_class)
+# iterator = MINDIterator
+# trainer = BaseTrainer(hparams, iterator, seed)
+yaml_name = r"nrms_entity.yaml"
+trainer = load_trainer(yaml_name)
 # load model
-model_path = os.path.join(get_data_path(args.mind_type), "checkpoint", f"best_model.pth")
-state = torch.load(model_path, map_location=trainer.device)
+model_path = os.path.join(data_path, "checkpoint", f"best_model.pth")
+state = torch.load(model_path)
 trainer.model.load_state_dict(state)
 with torch.no_grad():
-    trainer.model.eval()
     # tools.print_log(trainer.run_eval(valid_news_file, valid_behaviors_file))
     group_impr_indexes, group_preds = trainer.run_fast_eval(test_news_file, test_behaviors_file, test_set=True)
 write_prediction(group_impr_indexes, group_preds)
