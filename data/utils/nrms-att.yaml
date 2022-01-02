@@ -20,7 +20,7 @@ model:
 
   dropout: 0.2
   head_num: 20   # 20 head của cái MHAttention 
-  head_dim: 20   # không liên quan 
+  head_dim: 20   # không liên quan(k dùng trong đây)
   model_type: nrms
 
 train:

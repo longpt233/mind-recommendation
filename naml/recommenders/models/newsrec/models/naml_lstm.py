@@ -164,6 +164,10 @@ class NAMLModel(BaseModel):
         # đầu vào là chuỗi lịch sử 50 ngày, 400 là đầu ra embed của 1 bài viết 
     
         lstm_1 = layers.LSTM(units=128, return_sequences=True, input_shape=(50, 400))(click_news_presents)
+
+
+        # them 1 layer 
+        # lstm_2 = layers.LSTM(units=256, return_sequences=True)(lstm_1)
         user_present = layers.LSTM(400)(lstm_1)
 
         
@@ -199,7 +203,7 @@ class NAMLModel(BaseModel):
             # cái shape này sẽ k tính batch, ngầm hiểu nó đã là bacth*82*...
         )
 
-        print("dau vao new encoder =",input_title_body_verts)
+        print("dau vao new encoder =",  )
 
         # cho cả đống vào giờ lại tách ra : 82 -> lây 30 cái đầu 
         sequences_input_title = layers.Lambda(lambda x: x[:, : hparams.title_size])(

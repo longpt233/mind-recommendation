@@ -1,6 +1,6 @@
 data:
-  # title_size: 30
-  title_size: 384  # for bert pretrain 
+  title_size: 30
+  # title_size: 384  # for bert pretrain 
   body_size: 50
   his_size: 50
   vert_num: 17
