@@ -6,9 +6,9 @@ from configuration import (
 )
 from utils import tools
 
-# yaml_name = r"nrms_entity.yaml"
+yaml_name = r"nrms_entity.yaml"
 # hoac la 
-yaml_name = r"nrms-att.yaml"
+# yaml_name = r"nrms-att.yaml"
 
 trainer = load_trainer(yaml_name)
 # save model

@@ -5,7 +5,9 @@ from reco_utils.recommender.newsrec.io.mind_iterator import MINDIterator
 from reco_utils.recommender.newsrec.newsrec_utils import prepare_hparams
 from reco_utils.recommender.newsrec.newsrec_utils import get_mind_data_set
 
-epochs = 8
+
+# ghi đè lạ config 
+epochs = 4
 seed = 42
 MIND_type = 'small'
 data_root_path = '/content/drive/MyDrive/20211/rec-sys/mind-recomendation/data'

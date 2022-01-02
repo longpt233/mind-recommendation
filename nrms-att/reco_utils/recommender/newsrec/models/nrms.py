@@ -83,12 +83,25 @@ class NRMSModel(nn.Module):
         self.news_self_att = nn.MultiheadAttention(hparams.word_emb_dim, hparams.head_num)
         self.user_self_att = nn.MultiheadAttention(hparams.word_emb_dim, hparams.head_num)
 
+        # them 1 att 
+        self.news_self_att_2 = nn.MultiheadAttention(hparams.word_emb_dim, hparams.head_num)
+
     def news_encoder(self, sequences_input_title):
         embedded_sequences_title = self.embedding_layer(sequences_input_title)
         y = F.dropout(embedded_sequences_title, p=self.hparams.dropout).transpose(0, 1)
-        y = self.news_self_att(y, y, y)[0]
+        y = self.news_self_att(y, y, y)[0]  # số 0 này là lấy cái đầu cho vui thôi k có gì 
+        # y = F.dropout(y, p=self.hparams.dropout).transpose(0, 1)  # nhớ bỏ cái này khi về 1 att 
+
+        # thêm 1 tầng attention 
+        y = self.news_self_att_2(y, y, y)[0]  # số 0 này là lấy cái đầu cho vui thôi k có gì 
         y = F.dropout(y, p=self.hparams.dropout).transpose(0, 1)
-        y = self.news_att_layer(y)
+
+        # 30*300    
+        # MHA (30,32,300)
+        # transpose (32,30,300)
+        # linear 30*300->30*200  
+
+        y = self.news_att_layer(y)  #
         return y
 
     def user_encoder(self, his_input_title):
