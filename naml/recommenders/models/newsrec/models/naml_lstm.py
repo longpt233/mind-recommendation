@@ -167,8 +167,8 @@ class NAMLModel(BaseModel):
 
 
         # them 1 layer 
-        # lstm_2 = layers.LSTM(units=256, return_sequences=True)(lstm_1)
-        user_present = layers.LSTM(400)(lstm_1)
+        lstm_2 = layers.LSTM(units=256, return_sequences=True)(lstm_1)
+        user_present = layers.LSTM(400)(lstm_2)
 
         
         # print("click_news_presents shape = ",click_news_presents)
@@ -181,6 +181,8 @@ class NAMLModel(BaseModel):
         model = keras.Model(
             his_input_title_body_verts, user_present, name="user_encoder"
         )
+
+        print("user summary", model.summary())
         return model
 
     def _build_newsencoder(self, embedding_layer):

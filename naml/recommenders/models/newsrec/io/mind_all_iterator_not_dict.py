@@ -149,7 +149,20 @@ class MINDAllIteratorNotDictTitle(BaseIterator):
             # else :
             #     self.news_title_index[news_index] = None
 
-            self.news_title_index[news_index] = model_sentence.encode(sentence)
+            # sbert 
+            # self.news_title_index[news_index] = model_sentence.encode(sentence)
+            # print(self.news_title_index[news_index])
+            # print(type(self.news_title_index[news_index]))
+
+
+            # bert 
+            encoded_input = tokenizer(sentence, return_tensors='pt')
+            output = model_bert(**encoded_input)
+            out_numpy = output['pooler_output'].detach().numpy()[0]
+            # print(out_numpy)
+            # tf_tensor = tf.convert_to_tensor(out_numpy)
+            self.news_title_index[news_index] = out_numpy
+
                     
             for word_index_ab in range(min(self.body_size, len(ab))):
                 if ab[word_index_ab] in self.word_dict:
