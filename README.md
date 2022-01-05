@@ -12,7 +12,7 @@ mind-recomendadtion
 │   README.md
 │
 └───data
-│   │   viz-data
+│   │   viz-data.ipynb : một số viz dữ liệu
 │   └───utils
 │       │   các file  embedding, vec ...
 |       |   file cấu hình cho tất cả các model bên dưới 
@@ -22,6 +22,11 @@ mind-recomendadtion
 |   └───recommender 
 |
 └───nrms-att
-    └───main.ipynb : file thực thi 
+    └───main.ipynb : file thực thi cho nrms
     
 ```
+
+# ref
+
+- https://github.com/microsoft/recommenders
+- https://github.com/Ruixinhua/recommenders
